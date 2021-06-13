@@ -1,0 +1,72 @@
+﻿<Window x:Class="DynamicDataChart.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DynamicDataChart"
+        mc:Ignorable="d"
+        xmlns:ig="http://schemas.infragistics.com/xaml"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid x:Name="LayoutRoot">
+        <!-- #BEGIN SNIPPET# -->
+        <!-- ========================================================================== -->
+        <!-- Refer to code behind to see how dynamic data binding works with DataChart-->
+        <Grid.DataContext>
+            <local:DynamicDataCollection />
+        </Grid.DataContext>
+        <!-- ========================================================================== -->
+        <!-- #END SNIPPET# -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"></RowDefinition>
+            <RowDefinition Height="1*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <ig:XamDataChart x:Name="PriceChart" 
+                             Title="{Binding XWDC_BindingLiveData_PriceTitle, Source={StaticResource Strings}}" 
+                             TitleHorizontalAlignment="Center"
+                             VerticalZoomable="True" HorizontalZoomable="True" >
+            <ig:SyncManager.SyncSettings>
+                <ig:SyncSettings SyncChannel="syncDynamicCharts"
+                                     SynchronizeHorizontally="True"
+                                     SynchronizeVertically="False" />
+            </ig:SyncManager.SyncSettings>
+            <ig:XamDataChart.Axes>
+                <ig:CategoryXAxis x:Name="DateXAxis"  ItemsSource="{Binding}" 
+                                      Label="{Binding XDC_AxisLabelsFormat_DateYearMonth, Source={StaticResource Strings}}"/>
+                <ig:NumericYAxis x:Name="PriceYAxis"  Label="{}{0:C0}"/>
+            </ig:XamDataChart.Axes>
+            <ig:XamDataChart.Series>
+                <ig:FinancialPriceSeries DisplayType="Candlestick" ItemsSource="{Binding}" 
+                                             OpenMemberPath="Open" CloseMemberPath="Close" HighMemberPath="High" LowMemberPath="Low" 
+                                             VolumeMemberPath="Volume" 
+                                             IsHighlightingEnabled="True" IsTransitionInEnabled="True"
+                                             XAxis="{Binding ElementName=DateXAxis}" 
+                                             YAxis="{Binding ElementName=PriceYAxis}">
+                </ig:FinancialPriceSeries>
+            </ig:XamDataChart.Series>
+        </ig:XamDataChart>
+
+        <ig:XamDataChart x:Name="VolumeChart" Margin="0,20,0,0" Grid.Row="1" 
+                             VerticalZoomable="True" HorizontalZoomable="True">
+            <ig:SyncManager.SyncSettings>
+                <ig:SyncSettings SyncChannel="syncDynamicCharts"
+                                     SynchronizeHorizontally="True"
+                                     SynchronizeVertically="False" />
+            </ig:SyncManager.SyncSettings>
+            <ig:XamDataChart.Axes>
+                <ig:CategoryXAxis x:Name="VolumeXAxis" ItemsSource="{Binding}" 
+                                      Label="{Binding XDC_AxisLabelsFormat_DateYearMonth, Source={StaticResource Strings}}"/>
+                <ig:NumericYAxis x:Name="VolumeYAxis" />
+            </ig:XamDataChart.Axes>
+            <ig:XamDataChart.Series>
+                <ig:AreaSeries Thickness="1" ValueMemberPath="Volume" 
+                                         Title="{Binding XWDC_BindingLiveData_StockVolume, Source={StaticResource Strings}}" 
+                                         ItemsSource="{Binding}" 
+                                         IsHighlightingEnabled="True" IsTransitionInEnabled="True"
+                                         XAxis="{Binding ElementName=VolumeXAxis}" 
+                                         YAxis="{Binding ElementName=VolumeYAxis}" >
+                </ig:AreaSeries>
+            </ig:XamDataChart.Series>
+        </ig:XamDataChart>
+
+    </Grid>
+</Window>
