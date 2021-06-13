@@ -36,7 +36,7 @@ namespace DynamicScatter
             xAxis.MinimumValue = data[0].X;
             xAxis.MaximumValue = data[data.Count-1].X;
             var yAxis = new NumericYAxis();
-            yAxis.MinimumValue = -0.1;
+            yAxis.MinimumValue = 0;
             yAxis.MaximumValue = 1.0;
 
             var series = new ScatterLineSeries();
