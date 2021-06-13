@@ -21,7 +21,7 @@ namespace DynamicScatter
 
         public DataCollection()
         {
-            DataNum = 100;
+            DataNum = 20;
             backupData = new List<DataModel>();
 
             for (int i = 0; i < DataNum; i++)

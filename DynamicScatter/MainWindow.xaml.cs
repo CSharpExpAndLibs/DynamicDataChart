@@ -23,22 +23,42 @@ namespace DynamicScatter
     public partial class MainWindow : Window
     {
         Timer aTimer = null;
-        DataCollection data;
+        //DataCollection data;
         NumericXAxis xAxis;
-        int x = 100;
+        int x;
+        ScatterLineSeries[] seriesArray = new ScatterLineSeries[240];
+        DataCollection[] dataArray = new DataCollection[240];
+        Random rand = new Random();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            data = new DataCollection();
+            for (int i = 0; i < dataArray.Length; i++)
+            {
+                dataArray[i] = new DataCollection();
+            }
+            x = dataArray[0].DataNum - 1;
+
+            //data = new DataCollection();
             xAxis = new NumericXAxis();
-            xAxis.MinimumValue = data[0].X;
-            xAxis.MaximumValue = data[data.Count-1].X;
+            xAxis.MinimumValue = dataArray[0][0].X;
+            xAxis.MaximumValue = dataArray[0][dataArray[0].Count-1].X;
             var yAxis = new NumericYAxis();
             yAxis.MinimumValue = 0;
             yAxis.MaximumValue = 1.0;
+            
+            for (int i = 0; i < seriesArray.Length; i++)
+            {
+                seriesArray[i] = new ScatterLineSeries();
+                seriesArray[i].XAxis = xAxis;
+                seriesArray[i].YAxis = yAxis;
+                seriesArray[i].XMemberPath = "X";
+                seriesArray[i].YMemberPath = "Y";
+                seriesArray[i].ItemsSource = dataArray[i];
+            }
 
+#if false
             var series = new ScatterLineSeries();
             series.XAxis = xAxis;
             series.YAxis = yAxis;
@@ -46,10 +66,12 @@ namespace DynamicScatter
             series.YMemberPath = "Y";
             series.ItemsSource = data;
             series.TrendLineType = TrendLineType.None;
+#endif
 
             ScatterChart.Axes.Add(xAxis);
             ScatterChart.Axes.Add(yAxis);
-            ScatterChart.Series.Add(series);
+            for (int i = 0; i < seriesArray.Length; i++)
+                ScatterChart.Series.Add(seriesArray[i]);
 
             aTimer = new Timer(500);
             aTimer.Elapsed += ATimer_Elapsed;
@@ -66,11 +88,14 @@ namespace DynamicScatter
                     new object[] { sender, e });
                 return;
             }
-            double y = new Random().NextDouble();
-            //data.Update(new DataModel() { X = x++, Y = y });
-            data.Replace(new DataModel() { X = x++, Y = y });
-            xAxis.MinimumValue = data[0].X;
-            xAxis.MaximumValue = data[data.Count - 1].X;
+            for (int i = 0; i < seriesArray.Length; i++)
+            {
+                double y = rand.NextDouble();
+                dataArray[i].Update(new DataModel() { X = x, Y = y });
+            }
+            x++;
+            xAxis.MinimumValue = dataArray[0][0].X;
+            xAxis.MaximumValue = dataArray[0][dataArray[0].Count - 1].X;
         }
     }
 }
