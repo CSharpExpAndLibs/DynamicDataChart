@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if false
 namespace DynamicScatter
 {
     public class DataModel
@@ -46,3 +47,4 @@ namespace DynamicScatter
         }
     }
 }
+#endif // false
