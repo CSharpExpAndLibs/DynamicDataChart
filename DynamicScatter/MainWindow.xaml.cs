@@ -23,17 +23,23 @@ namespace DynamicScatter
     public partial class MainWindow : Window
     {
         Timer aTimer = null;
-        //DataCollection data;
         NumericXAxis xAxis;
         int x;
-        ScatterLineSeries[] seriesArray = new ScatterLineSeries[240];
-        DataCollection[] dataArray = new DataCollection[240];
+        ScatterLineSeries[] seriesArray = new ScatterLineSeries[10];
+        DataCollection[] dataArray = new DataCollection[10];
+        DataCollection2[] dataArray2 = new DataCollection2[10];
         Random rand = new Random();
+        long originTime;
 
         public MainWindow()
         {
             InitializeComponent();
+            //InitNumGraph();
+            InitTimeGraph();
 
+        }
+        private void InitNumGraph()
+        {
             for (int i = 0; i < dataArray.Length; i++)
             {
                 dataArray[i] = new DataCollection();
@@ -43,11 +49,11 @@ namespace DynamicScatter
             //data = new DataCollection();
             xAxis = new NumericXAxis();
             xAxis.MinimumValue = dataArray[0][0].X;
-            xAxis.MaximumValue = dataArray[0][dataArray[0].Count-1].X;
+            xAxis.MaximumValue = dataArray[0][dataArray[0].Count - 1].X;
             var yAxis = new NumericYAxis();
             yAxis.MinimumValue = 0;
-            yAxis.MaximumValue = 1.0;
-            
+            yAxis.MaximumValue = 1024;
+
             for (int i = 0; i < seriesArray.Length; i++)
             {
                 seriesArray[i] = new ScatterLineSeries();
@@ -58,16 +64,6 @@ namespace DynamicScatter
                 seriesArray[i].ItemsSource = dataArray[i];
             }
 
-#if false
-            var series = new ScatterLineSeries();
-            series.XAxis = xAxis;
-            series.YAxis = yAxis;
-            series.XMemberPath = "X";
-            series.YMemberPath = "Y";
-            series.ItemsSource = data;
-            series.TrendLineType = TrendLineType.None;
-#endif
-
             ScatterChart.Axes.Add(xAxis);
             ScatterChart.Axes.Add(yAxis);
             for (int i = 0; i < seriesArray.Length; i++)
@@ -76,6 +72,49 @@ namespace DynamicScatter
             aTimer = new Timer(500);
             aTimer.Elapsed += ATimer_Elapsed;
             aTimer.Enabled = true;
+
+        }
+        private void InitTimeGraph()
+        {
+            long period = 500; // 500msec
+
+            for (int i = 0; i < dataArray2.Length; i++)
+            {
+                dataArray2[i] = new DataCollection2(period);
+            }
+
+            xAxis = new NumericXAxis();
+            xAxis.MinimumValue = dataArray2[0][0].X;
+            xAxis.MaximumValue = 0;
+
+            var yAxis = new NumericYAxis();
+            yAxis.MinimumValue = 0;
+            yAxis.MaximumValue = 1024;
+
+            for (int i = 0; i < seriesArray.Length; i++)
+            {
+                seriesArray[i] = new ScatterLineSeries();
+                seriesArray[i].XAxis = xAxis;
+                seriesArray[i].YAxis = yAxis;
+                seriesArray[i].XMemberPath = "X";
+                seriesArray[i].YMemberPath = "Y";
+                seriesArray[i].ItemsSource = dataArray2[i];
+            }
+
+            ScatterChart.Axes.Add(xAxis);
+            ScatterChart.Axes.Add(yAxis);
+            for (int i = 0; i < seriesArray.Length; i++)
+                ScatterChart.Series.Add(seriesArray[i]);
+
+            aTimer = new Timer(period);
+            aTimer.Elapsed += ATimer_Elapsed2;
+            aTimer.Enabled = true;
+
+            // 現在時刻を原点に設定
+            //   動的に設定するのであれば初っ端データを取得した時に
+            //   設定すれば良い
+            originTime = DateTime.Now.Ticks;
+
         }
 
         delegate void timerHandler(object sender, ElapsedEventArgs e);
@@ -90,12 +129,34 @@ namespace DynamicScatter
             }
             for (int i = 0; i < seriesArray.Length; i++)
             {
-                double y = rand.NextDouble();
+                double y = 512 + (rand.Next() % 256 - 128);
                 dataArray[i].Update(new DataModel() { X = x, Y = y });
             }
             x++;
             xAxis.MinimumValue = dataArray[0][0].X;
             xAxis.MaximumValue = dataArray[0][dataArray[0].Count - 1].X;
+        }
+
+        private void ATimer_Elapsed2(object sender, ElapsedEventArgs e)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(new timerHandler(ATimer_Elapsed2),
+                    new object[] { sender, e });
+                return;
+            }
+
+            long now = DateTime.Now.Ticks;
+            for (int i = 0; i < seriesArray.Length; i++)
+            {
+                double y = 512 + (rand.Next() % 256 - 128);
+                double t = (now - originTime) / 10000; // msec order
+                dataArray2[i].Update(new DataModel2() { X = t, Y = y });
+            }
+
+            // 全ての凡例のXが等しいと看做せるならば、これでOK
+            xAxis.MinimumValue = dataArray2[0][0].X;
+            xAxis.MaximumValue = dataArray2[0][dataArray2[0].Count - 1].X;
         }
     }
 }
